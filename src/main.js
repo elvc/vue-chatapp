@@ -16,7 +16,6 @@ const {
   VUE_APP_MESSAGE_SENDER_ID
 } = process.env;
 
-console.log(process.env);
 // Initialize Firebase
 var config = {
   apiKey: VUE_APP_API_KEY,
