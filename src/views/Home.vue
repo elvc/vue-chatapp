@@ -110,6 +110,7 @@
 </template>
 
 <script>
+import firebase from "firebase";
 export default {
   name: "home",
   data() {
@@ -137,8 +138,7 @@ export default {
     fetchMessages() {
       db.collection("chat")
         .orderBy("createdAt")
-        .get()
-        .then(querySnapshot => {
+        .onSnapshot(querySnapshot => {
           let allMessages = [];
           querySnapshot.forEach(doc => {
             allMessages.push(doc.data());
@@ -149,6 +149,18 @@ export default {
   },
   created() {
     this.fetchMessages();
+  },
+  // check authentication before hitting any routes
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+          next();
+        } else {
+          vm.$router.push("/login");
+        }
+      });
+    });
   }
 };
 </script>
