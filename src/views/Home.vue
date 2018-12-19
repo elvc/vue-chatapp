@@ -24,7 +24,7 @@
               <div class="chat_list active_chat">
                 <div class="chat_people">
                   <div class="chat_img">
-                    <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
+                    <img src="https://ptetutorials.com/images/user-profile.png" alt="profile pic">
                   </div>
                   <div class="chat_ib">
                     <h5>
@@ -41,7 +41,7 @@
               <div class="chat_list">
                 <div class="chat_people">
                   <div class="chat_img">
-                    <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
+                    <img src="https://ptetutorials.com/images/user-profile.png" alt="profile pic">
                   </div>
                   <div class="chat_ib">
                     <h5>
@@ -58,7 +58,7 @@
               <div class="chat_list">
                 <div class="chat_people">
                   <div class="chat_img">
-                    <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
+                    <img src="https://ptetutorials.com/images/user-profile.png" alt="profile pic">
                   </div>
                   <div class="chat_ib">
                     <h5>
@@ -76,14 +76,18 @@
           </div>
           <div class="mesgs">
             <div class="msg_history">
-              <div v-for="message in messages" class="incoming_msg">
+              <div
+                v-for="(message, index) in messages"
+                :key="`message-${index}`"
+                class="incoming_msg"
+              >
                 <div class="incoming_msg_img">
-                  <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
+                  <img src="https://ptetutorials.com/images/user-profile.png" alt="profile pic">
                 </div>
                 <div class="received_msg">
                   <div class="received_withd_msg">
                     <p>{{message.message}}</p>
-                    <span class="time_date">11:01 AM | June 9</span>
+                    <span class="time_date">{{message.createdAt}} | {{message.author}}</span>
                   </div>
                 </div>
               </div>
@@ -111,24 +115,32 @@
 
 <script>
 import firebase from "firebase";
+import dateFns from "date-fns";
+
 export default {
   name: "home",
   data() {
     return {
       message: null,
-      messages: []
+      messages: [],
+      authUser: {}
     };
   },
   methods: {
+    scrollToBottom() {
+      let box = document.querySelector(".msg_history");
+      box.scrollTop = box.scrollHeight;
+    },
     saveMessage() {
       // save to firestore
       db.collection("chat")
         .add({
           message: this.message,
+          author: this.authUser.displayName,
           createdAt: new Date()
         })
-        .then(function(docRef) {
-          console.log("Message written with ID: ", docRef.id);
+        .then(() => {
+          this.scrollToBottom();
         })
         .catch(function(error) {
           console.error("Error adding message: ", error);
@@ -141,13 +153,30 @@ export default {
         .onSnapshot(querySnapshot => {
           let allMessages = [];
           querySnapshot.forEach(doc => {
-            allMessages.push(doc.data());
+            const data = doc.data();
+            data.createdAt = dateFns.format(
+              doc.data().createdAt.toDate(),
+              "MM/DD, HH:mm"
+            );
+            allMessages.push(data);
           });
+
           this.messages = allMessages;
+
+          setTimeout(() => {
+            this.scrollToBottom();
+          }, 1000);
         });
     }
   },
   created() {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        this.authUser = user;
+      } else {
+        this.authUser = {};
+      }
+    });
     this.fetchMessages();
   },
   // check authentication before hitting any routes
@@ -165,7 +194,7 @@ export default {
 };
 </script>
 
-<style scoped=''>
+<style scoped>
 .container {
   max-width: 1170px;
   margin: auto;
