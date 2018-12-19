@@ -40,17 +40,17 @@ export default new Vuex.Store({
   state,
   actions: {
     addMsg({ commit }, payload) {
-      commit("addMsg", payload);
+      commit("ADD_MSG", payload);
     },
     setAuthor({ commit }, payload) {
-      commit("setAuthor", payload);
+      commit("SET_AUTHOR", payload);
     },
     setLoginUser({ commit }) {
-      commit("setLoginUser");
+      commit("SET_LOGIN_USER");
     }
   },
   mutations: {
-    addMsg(state, payload) {
+    ADD_MSG(state, payload) {
       const { message } = payload;
       state.db
         .collection("chat")
@@ -64,10 +64,10 @@ export default new Vuex.Store({
           console.error("Error adding message: ", error);
         });
     },
-    setAuthor(state, { user }) {
+    SET_AUTHOR(state, { user }) {
       state.author = user.displayName;
     },
-    setLoginUser() {
+    SET_LOGIN_USER() {
       var provider = new firebase.auth.GoogleAuthProvider();
       provider.addScope("https://www.googleapis.com/auth/contacts.readonly");
 
