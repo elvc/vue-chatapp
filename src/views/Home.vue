@@ -114,6 +114,7 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import firebase from "firebase";
 import dateFns from "date-fns";
 
@@ -123,32 +124,24 @@ export default {
     return {
       message: null,
       messages: [],
-      authUser: {}
+      date: null
     };
   },
   methods: {
-    scrollToBottom() {
-      let box = document.querySelector(".msg_history");
-      box.scrollTop = box.scrollHeight;
-    },
+    ...mapActions({
+      addMessage: "addMsg",
+      setUser: "setUser"
+    }),
     saveMessage() {
       // save to firestore
-      db.collection("chat")
-        .add({
-          message: this.message,
-          author: this.authUser.displayName,
-          createdAt: new Date()
-        })
-        .then(() => {
-          this.scrollToBottom();
-        })
-        .catch(function(error) {
-          console.error("Error adding message: ", error);
-        });
+      this.addMessage({
+        message: this.message
+      });
       this.message = null;
     },
     fetchMessages() {
-      db.collection("chat")
+      this.$store.state.db
+        .collection("chat")
         .orderBy("createdAt")
         .onSnapshot(querySnapshot => {
           let allMessages = [];
@@ -160,21 +153,16 @@ export default {
             );
             allMessages.push(data);
           });
-
           this.messages = allMessages;
-
-          setTimeout(() => {
-            this.scrollToBottom();
-          }, 1000);
         });
     }
   },
   created() {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        this.authUser = user;
+        this.setUser({ user });
       } else {
-        this.authUser = {};
+        this.setUser({});
       }
     });
     this.fetchMessages();
