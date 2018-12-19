@@ -1,25 +1,10 @@
 <template>
   <div class="home">
     <div class="container">
-      <h3 class="text-center">Messaging</h3>
+      <h1 class="text-center">Messaging</h1>
       <div class="messaging">
         <div class="inbox_msg">
           <div class="inbox_people">
-            <div class="headind_srch">
-              <div class="recent_heading">
-                <h4>Recent</h4>
-              </div>
-              <div class="srch_bar">
-                <div class="stylish-input-group">
-                  <input type="text" class="search-bar" placeholder="Search">
-                  <span class="input-group-addon">
-                    <button type="button">
-                      <i class="fa fa-search" aria-hidden="true"></i>
-                    </button>
-                  </span>
-                </div>
-              </div>
-            </div>
             <div class="inbox_chat">
               <div class="chat_list active_chat">
                 <div class="chat_people">
@@ -46,23 +31,6 @@
                   <div class="chat_ib">
                     <h5>
                       User 2
-                      <span class="chat_date">Dec 25</span>
-                    </h5>
-                    <p>
-                      Test, which is a new approach to have all solutions
-                      astrology under one roof.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div class="chat_list">
-                <div class="chat_people">
-                  <div class="chat_img">
-                    <img src="https://ptetutorials.com/images/user-profile.png" alt="profile pic">
-                  </div>
-                  <div class="chat_ib">
-                    <h5>
-                      User 3
                       <span class="chat_date">Dec 25</span>
                     </h5>
                     <p>
@@ -130,7 +98,7 @@ export default {
   methods: {
     ...mapActions({
       addMessage: "addMsg",
-      setAuthor: "setAuthor"
+      setCurrentUser: "setCurrentUser"
     }),
     saveMessage() {
       // save to firestore
@@ -160,9 +128,9 @@ export default {
   created() {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        this.setAuthor({ user });
+        this.setCurrentUser(user);
       } else {
-        this.setAuthor({});
+        this.setCurrentUser(null);
       }
     });
     this.fetchMessages();
@@ -211,12 +179,7 @@ img {
   float: left;
   width: 40%;
 }
-.srch_bar {
-  display: inline-block;
-  text-align: right;
-  width: 60%;
-  padding: ;
-}
+
 .headind_srch {
   padding: 10px 29px 10px 20px;
   overflow: hidden;
@@ -227,23 +190,6 @@ img {
   color: #05728f;
   font-size: 21px;
   margin: auto;
-}
-.srch_bar input {
-  border: 1px solid #cdcdcd;
-  border-width: 0 0 1px 0;
-  width: 80%;
-  padding: 2px 0 4px 6px;
-  background: none;
-}
-.srch_bar .input-group-addon button {
-  background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
-  border: medium none;
-  padding: 0;
-  color: #707070;
-  font-size: 18px;
-}
-.srch_bar .input-group-addon {
-  margin: 0 0 0 -27px;
 }
 
 .chat_ib h5 {

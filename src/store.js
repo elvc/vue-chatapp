@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import firebase from "firebase";
+import router from "./router";
 // Required for side-effects
 import "firebase/firestore";
 
@@ -33,7 +34,7 @@ firestore.settings(settings);
 
 const state = {
   db: firestore,
-  author: {}
+  currentUser: null
 };
 
 export default new Vuex.Store({
@@ -42,11 +43,14 @@ export default new Vuex.Store({
     addMsg({ commit }, payload) {
       commit("ADD_MSG", payload);
     },
-    setAuthor({ commit }, payload) {
-      commit("SET_AUTHOR", payload);
+    setCurrentUser({ commit }, payload) {
+      commit("SET_CURRENT_USER", payload);
     },
-    setLoginUser({ commit }) {
-      commit("SET_LOGIN_USER");
+    loginUser({ commit }) {
+      commit("LOGIN_USER");
+    },
+    logoutUser({ commit }) {
+      commit("LOGOUT_USER");
     }
   },
   mutations: {
@@ -64,10 +68,10 @@ export default new Vuex.Store({
           console.error("Error adding message: ", error);
         });
     },
-    SET_AUTHOR(state, { user }) {
-      state.author = user.displayName;
+    SET_CURRENT_USER(state, user) {
+      state.currentUser = (user && user.displayName) || null;
     },
-    SET_LOGIN_USER() {
+    LOGIN_USER() {
       var provider = new firebase.auth.GoogleAuthProvider();
       provider.addScope("https://www.googleapis.com/auth/contacts.readonly");
 
@@ -75,7 +79,19 @@ export default new Vuex.Store({
         .auth()
         .signInWithPopup(provider)
         .then(() => {
-          this.$router.push("/");
+          router.push("/");
+        })
+        .catch(error => {
+          // Handle Errors here.
+          console.error(error);
+        });
+    },
+    LOGOUT_USER() {
+      firebase
+        .auth()
+        .signOut()
+        .then(() => {
+          router.push("/login");
         })
         .catch(error => {
           // Handle Errors here.

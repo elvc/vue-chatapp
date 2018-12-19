@@ -1,13 +1,35 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+      <router-link to="/">Home</router-link>|
+      <button v-if="loggedout === null">Login</button>
+      <button v-else @click="logout">Logout</button>
     </div>
-    <router-view />
+    <router-view/>
   </div>
 </template>
 
+<script>
+import firebase from "firebase";
+import { mapActions } from "vuex";
+
+export default {
+  name: "app",
+  computed: {
+    loggedout: function() {
+      return this.$store.state.currentUser;
+    }
+  },
+  methods: {
+    ...mapActions({
+      logoutUser: "logoutUser"
+    }),
+    logout() {
+      this.logoutUser();
+    }
+  }
+};
+</script>
 <style lang="scss">
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;

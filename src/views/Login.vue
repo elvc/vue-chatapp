@@ -13,10 +13,10 @@ export default {
   name: "login",
   methods: {
     ...mapActions({
-      setLoginUser: "setLoginUser"
+      loginUser: "loginUser"
     }),
     login() {
-      this.setLoginUser();
+      this.loginUser();
     }
   }
 };
