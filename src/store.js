@@ -50,7 +50,6 @@ export default new Vuex.Store({
   mutations: {
     addMsg(state, payload) {
       const { message } = payload;
-      console.log("message", message);
       state.db
         .collection("chat")
         .add({
