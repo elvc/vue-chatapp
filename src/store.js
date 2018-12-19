@@ -1,6 +1,5 @@
 import Vue from "vue";
 import Vuex from "vuex";
-
 import firebase from "firebase";
 // Required for side-effects
 import "firebase/firestore";
@@ -43,8 +42,11 @@ export default new Vuex.Store({
     addMsg({ commit }, payload) {
       commit("addMsg", payload);
     },
-    setUser({ commit }, payload) {
-      commit("setUser", payload);
+    setAuthor({ commit }, payload) {
+      commit("setAuthor", payload);
+    },
+    setLoginUser({ commit }) {
+      commit("setLoginUser");
     }
   },
   mutations: {
@@ -62,8 +64,23 @@ export default new Vuex.Store({
           console.error("Error adding message: ", error);
         });
     },
-    setUser(state, { user }) {
+    setAuthor(state, { user }) {
       state.author = user.displayName;
+    },
+    setLoginUser() {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope("https://www.googleapis.com/auth/contacts.readonly");
+
+      firebase
+        .auth()
+        .signInWithPopup(provider)
+        .then(() => {
+          this.$router.push("/");
+        })
+        .catch(error => {
+          // Handle Errors here.
+          console.error(error);
+        });
     }
   }
 });

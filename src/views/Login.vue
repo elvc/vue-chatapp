@@ -7,27 +7,16 @@
 
 <script>
 import firebase from "firebase";
+import { mapActions } from "vuex";
+
 export default {
   name: "login",
   methods: {
+    ...mapActions({
+      setLoginUser: "setLoginUser"
+    }),
     login() {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      provider.addScope("https://www.googleapis.com/auth/contacts.readonly");
-
-      firebase
-        .auth()
-        .signInWithPopup(provider)
-        .then(result => {
-          // This gives you a Google Access Token. You can use it to access the Google API.
-          var token = result.credential.accessToken;
-          // The signed-in user info.
-          var user = result.user;
-          this.$router.push("/");
-        })
-        .catch(error => {
-          // Handle Errors here.
-          console.error(error);
-        });
+      this.setLoginUser();
     }
   }
 };

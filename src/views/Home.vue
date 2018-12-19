@@ -130,7 +130,7 @@ export default {
   methods: {
     ...mapActions({
       addMessage: "addMsg",
-      setUser: "setUser"
+      setAuthor: "setAuthor"
     }),
     saveMessage() {
       // save to firestore
@@ -160,9 +160,9 @@ export default {
   created() {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        this.setUser({ user });
+        this.setAuthor({ user });
       } else {
-        this.setUser({});
+        this.setAuthor({});
       }
     });
     this.fetchMessages();
