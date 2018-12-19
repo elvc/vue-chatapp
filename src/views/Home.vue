@@ -137,14 +137,12 @@ export default {
   },
   // check authentication before hitting any routes
   beforeRouteEnter(to, from, next) {
-    next(vm => {
-      firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-          next();
-        } else {
-          vm.$router.push("/login");
-        }
-      });
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        next();
+      } else {
+        next({ path: "/login" });
+      }
     });
   }
 };
