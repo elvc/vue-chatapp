@@ -34,7 +34,9 @@ firestore.settings(settings);
 
 const state = {
   db: firestore,
-  currentUser: null
+  currentUser: null,
+  currentUserId: null,
+  photoUrl: null
 };
 
 export default new Vuex.Store({
@@ -59,8 +61,10 @@ export default new Vuex.Store({
       state.db
         .collection("chat")
         .add({
-          message,
-          author: state.author,
+          message: message,
+          author: state.currentUser,
+          author_id: state.currentUserId,
+          photoUrl: state.photoUrl,
           createdAt: new Date()
         })
         .then(() => {})
@@ -69,7 +73,10 @@ export default new Vuex.Store({
         });
     },
     SET_CURRENT_USER(state, user) {
+      console.log(user);
       state.currentUser = (user && user.displayName) || null;
+      state.currentUserId = (user && user.uid) || null;
+      state.photoUrl = (user && user.photoURL) || null;
     },
     LOGIN_USER() {
       var provider = new firebase.auth.GoogleAuthProvider();
@@ -87,10 +94,22 @@ export default new Vuex.Store({
         });
     },
     LOGOUT_USER() {
+      var uid = firebase.auth().currentUser.uid;
+      var userStatusFirestoreRef = state.db.collection("status").doc(uid);
+
       firebase
         .auth()
         .signOut()
         .then(() => {
+          console.log("Signout successful");
+          userStatusFirestoreRef
+            .update({ state: "offline" })
+            .then(function() {
+              console.log("Status updated");
+            })
+            .catch(function(error) {
+              console.error("Error updating status", error);
+            });
           router.push("/login");
         })
         .catch(error => {

@@ -1,79 +1,61 @@
 <template>
-  <div class="home">
+  <div class="chat">
     <div class="container">
-      <h1 class="text-center">Messaging</h1>
-      <div class="messaging">
-        <div class="inbox_msg">
-          <div class="inbox_people">
-            <div class="inbox_chat">
-              <div class="chat_list active_chat">
-                <div class="chat_people">
-                  <div class="chat_img">
-                    <img src="https://ptetutorials.com/images/user-profile.png" alt="profile pic">
-                  </div>
-                  <div class="chat_ib">
-                    <h5>
-                      User 1
-                      <span class="chat_date">Dec 25</span>
-                    </h5>
-                    <p>
-                      Test, which is a new approach to have all solutions
-                      astrology under one roof.
-                    </p>
-                  </div>
-                </div>
+      <h1 class="app-heading">Messaging</h1>
+      <div class="chat__main-container">
+        <div class="chat__left-panel">
+          <ul class="chat__list">
+            <li class="chat__list-item">
+              <div class="chat_details">
+                <h5>User Group</h5>
+                <p>
+                  Test, which is a new approach to have all solutions astrology
+                  under one roof.
+                </p>
               </div>
-              <div class="chat_list">
-                <div class="chat_people">
-                  <div class="chat_img">
-                    <img src="https://ptetutorials.com/images/user-profile.png" alt="profile pic">
-                  </div>
-                  <div class="chat_ib">
-                    <h5>
-                      User 2
-                      <span class="chat_date">Dec 25</span>
-                    </h5>
-                    <p>
-                      Test, which is a new approach to have all solutions
-                      astrology under one roof.
-                    </p>
-                  </div>
-                </div>
+            </li>
+          </ul>
+        </div>
+        <div class="chat__right-panel">
+          <div class="msg-container">
+            <div
+              v-for="(message, index) in messages"
+              :key="`message-${index}`"
+              :class="
+                `msg ${getUserId === message.author_id ? 'msg--self' : ''}`
+              "
+            >
+              <div class="msg-avatar">
+                <img
+                  v-if="message.photoUrl"
+                  :src="message.photoUrl"
+                  alt="profile pic"
+                />
+                <div v-else class="msg-avatar--initial">{{ initial }}</div>
+              </div>
+              <div class="msg-details">
+                <p class="msg--message">{{ message.message }}</p>
+                <span class="time_date"
+                  >{{ message.createdAt }} | {{ message.author }}</span
+                >
               </div>
             </div>
           </div>
-          <div class="mesgs">
-            <div class="msg_history">
-              <div
-                v-for="(message, index) in messages"
-                :key="`message-${index}`"
-                class="incoming_msg"
-              >
-                <div class="incoming_msg_img">
-                  <img src="https://ptetutorials.com/images/user-profile.png" alt="profile pic">
-                </div>
-                <div class="received_msg">
-                  <div class="received_withd_msg">
-                    <p>{{message.message}}</p>
-                    <span class="time_date">{{message.createdAt}} | {{message.author}}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="type_msg">
-              <div class="input_msg_write">
-                <input
-                  @keyup.enter="saveMessage"
-                  v-model="message"
-                  type="text"
-                  class="write_msg"
-                  placeholder="Type a message"
-                >
-                <button class="msg_send_btn" type="button">
-                  <i class="fa fa-paper-plane-o" aria-hidden="true"></i>
-                </button>
-              </div>
-            </div>
+          <div class="msg-input__container">
+            <input
+              @keyup.enter="saveMessage"
+              v-model="message"
+              type="text"
+              class="msg-input__input"
+              placeholder="Type a message"
+            />
+            <button
+              @click="saveMessage"
+              class="button msg-input__btn--send"
+              type="button"
+            >
+              Send
+            </button>
           </div>
         </div>
       </div>
@@ -94,6 +76,17 @@ export default {
       messages: [],
       date: null
     };
+  },
+  computed: {
+    getUserId() {
+      return this.$store.state.currentUserId;
+    },
+    initial() {
+      // Initials of the user name
+      const str = this.$store.state.currentUser;
+      var matches = str.match(/\b(\w)/g);
+      return matches.join("");
+    }
   },
   methods: {
     ...mapActions({
@@ -133,6 +126,82 @@ export default {
         this.setCurrentUser(null);
       }
     });
+    // Fetch the current user's ID from Firebase Authentication.
+    var uid = firebase.auth().currentUser.uid;
+
+    // Create a reference to this user's specific status node.
+    // This is where we will store data about being online/offline.
+    var userStatusDatabaseRef = firebase.database().ref("/status/" + uid);
+    var userStatusFirestoreRef = firebase.firestore().doc("/status/" + uid);
+    const user = firebase.auth().currentUser.displayName;
+
+    // Firestore uses a different server timestamp value, so we'll
+    // create two more constants for Firestore state.
+    var isOfflineForFirestore = {
+      state: "offline",
+      user,
+      last_changed: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    var isOnlineForFirestore = {
+      state: "online",
+      user,
+      last_changed: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    // We'll create two constants which we will write to
+    // the Realtime database when this device is offline
+    // or online.
+    var isOfflineForDatabase = {
+      state: "offline",
+      user,
+      last_changed: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    var isOnlineForDatabase = {
+      state: "online",
+      user,
+      last_changed: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    // Create a reference to the special '.info/connected' path in
+    // Realtime Database. This path returns `true` when connected
+    // and `false` when disconnected.
+    firebase
+      .database()
+      .ref(".info/connected")
+      .on("value", function(snapshot) {
+        if (snapshot.val() == false) {
+          // Instead of simply returning, we'll also set Firestore's state
+          // to 'offline'. This ensures that our Firestore cache is aware
+          // of the switch to 'offline.'
+          userStatusFirestoreRef.set(isOfflineForFirestore);
+          return;
+        }
+        userStatusDatabaseRef
+          .onDisconnect()
+          .set(isOfflineForDatabase)
+          .then(function() {
+            userStatusDatabaseRef.set(isOnlineForDatabase);
+
+            // We'll also add Firestore set here for when we come online.
+            userStatusFirestoreRef.set(isOnlineForFirestore);
+          });
+      });
+
+    firebase
+      .firestore()
+      .collection("status")
+      .where("state", "==", "online")
+      .onSnapshot(function(snapshot) {
+        snapshot.docChanges().forEach(function(change) {
+          if (change.type === "added") {
+            console.log(change.doc.id + " is online");
+          }
+          if (change.type === "removed") {
+            console.log(change.doc.id + " is offline");
+          }
+        });
+      });
     this.fetchMessages();
   },
   // check authentication before hitting any routes
@@ -148,172 +217,88 @@ export default {
 };
 </script>
 
-<style scoped>
-.container {
-  max-width: 1170px;
-  margin: auto;
-}
+<style lang="scss" scoped>
+$msg-input-height: 40px;
 
-img {
-  max-width: 100%;
+.app-heading {
+  text-align: center;
 }
-.inbox_people {
-  background: #f8f8f8 none repeat scroll 0 0;
-  float: left;
-  overflow: hidden;
-  width: 40%;
-  border-right: 1px solid #c4c4c4;
+.chat__main-container {
+  display: flex;
+  height: 65vh;
 }
-.inbox_msg {
-  border: 1px solid #c4c4c4;
-  clear: both;
-  overflow: hidden;
-}
-.top_spac {
-  margin: 20px 0 0;
-}
-
-.recent_heading {
-  float: left;
-  width: 40%;
-}
-
-.headind_srch {
-  padding: 10px 29px 10px 20px;
-  overflow: hidden;
-  border-bottom: 1px solid #c4c4c4;
-}
-
-.recent_heading h4 {
-  color: #05728f;
-  font-size: 21px;
-  margin: auto;
-}
-
-.chat_ib h5 {
-  font-size: 15px;
-  color: #464646;
-  margin: 0 0 8px 0;
-}
-.chat_ib h5 span {
-  font-size: 13px;
-  float: right;
-}
-.chat_ib p {
-  font-size: 14px;
-  color: #989898;
-  margin: auto;
-}
-.chat_img {
-  float: left;
-  width: 11%;
-}
-.chat_ib {
-  float: left;
-  padding: 0 0 0 15px;
-  width: 88%;
-}
-
-.chat_people {
-  overflow: hidden;
-  clear: both;
-}
-.chat_list {
-  border-bottom: 1px solid #c4c4c4;
-  margin: 0;
-  padding: 18px 16px 10px;
-}
-.inbox_chat {
-  height: 550px;
-  overflow-y: scroll;
-}
-
-.active_chat {
-  background: #ebebeb;
-}
-
-.incoming_msg_img {
-  display: inline-block;
-  width: 6%;
-}
-.received_msg {
-  display: inline-block;
-  padding: 0 0 0 10px;
-  vertical-align: top;
-  width: 92%;
-}
-.received_withd_msg p {
-  background: #ebebeb none repeat scroll 0 0;
-  border-radius: 3px;
-  color: #646464;
-  font-size: 14px;
-  margin: 0;
-  padding: 5px 10px 5px 12px;
-  width: 100%;
-}
-.time_date {
-  color: #747474;
-  display: block;
-  font-size: 12px;
-  margin: 8px 0 0;
-}
-.received_withd_msg {
-  width: 57%;
-}
-.mesgs {
-  float: left;
-  padding: 30px 15px 0 25px;
-  width: 60%;
-}
-
-.sent_msg p {
-  background: #05728f none repeat scroll 0 0;
-  border-radius: 3px;
-  font-size: 14px;
-  margin: 0;
-  color: #fff;
-  padding: 5px 10px 5px 12px;
-  width: 100%;
-}
-.outgoing_msg {
-  overflow: hidden;
-  margin: 26px 0 26px;
-}
-.sent_msg {
-  float: right;
-  width: 46%;
-}
-.input_msg_write input {
-  background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
-  border: medium none;
-  color: #4c4c4c;
-  font-size: 15px;
-  min-height: 48px;
-  width: 100%;
-}
-
-.type_msg {
-  border-top: 1px solid #c4c4c4;
-  position: relative;
-}
-.msg_send_btn {
-  background: #05728f none repeat scroll 0 0;
-  border: medium none;
-  border-radius: 50%;
-  color: #fff;
-  cursor: pointer;
-  font-size: 17px;
-  height: 33px;
-  position: absolute;
-  right: 0;
-  top: 11px;
-  width: 33px;
-}
-.messaging {
-  padding: 0 0 50px 0;
-}
-.msg_history {
-  height: 516px;
+.chat__left-panel {
+  width: 35%;
+  background: $grey;
+  color: white;
   overflow-y: auto;
+}
+.chat__right-panel {
+  width: 65%;
+  background: $lightest-grey;
+  position: relative;
+
+  .msg-container {
+    overflow-y: auto;
+    height: calc(100% - #{$msg-input-height} - #{$gutter} * 4);
+    padding: $gutter * 2;
+  }
+  .msg {
+    display: flex;
+    align-items: center;
+    &--self {
+      justify-content: flex-end;
+    }
+  }
+  .msg-avatar {
+    img {
+      width: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  }
+  .msg-avatar--initial {
+    color: white;
+    font-weight: 400;
+    font-size: 22px;
+    background: $grey;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    line-height: 40px;
+    text-align: center;
+  }
+  .msg-details {
+    padding-left: 24px;
+  }
+  .msg--incoming {
+  }
+  .msg--outgoing {
+    margin-left: auto;
+  }
+  .msg--message {
+  }
+  .time-date {
+  }
+  .msg-input__container {
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    height: $msg-input-height;
+    width: 100%;
+  }
+  .msg-input__input {
+    font-size: 1.6rem;
+    padding: 11px;
+    border: none;
+    width: 100%;
+  }
+  .msg-input__btn--send {
+    font-size: 1.5rem;
+    padding: 11px 20px;
+    border: none;
+    background: $green;
+    color: white;
+  }
 }
 </style>
