@@ -2,6 +2,7 @@
   <div class="chat">
     <div class="container">
       <h1 class="app-heading">Messaging</h1>
+      <HelloWorld msg="Welcome to Your Vue.js App" />
       <div class="chat__main-container">
         <div class="chat__left-panel">
           <ul class="chat__list">
@@ -18,45 +19,11 @@
         </div>
         <div class="chat__right-panel">
           <div class="msg-container">
-            <div
-              v-for="(message, index) in messages"
-              :key="`message-${index}`"
-              :class="
-                `msg ${getUserId === message.author_id ? 'msg--self' : ''}`
-              "
-            >
-              <div class="msg-avatar">
-                <img
-                  v-if="message.photoUrl"
-                  :src="message.photoUrl"
-                  alt="profile pic"
-                />
-                <div v-else class="msg-avatar--initial">{{ initial }}</div>
-              </div>
-              <div class="msg-details">
-                <p class="msg--message">{{ message.message }}</p>
-                <span class="time_date"
-                  >{{ message.createdAt }} | {{ message.author }}</span
-                >
-              </div>
+            <div v-for="(message, index) in messages" :key="`message-${index}`">
+              <Message :message="message" />
             </div>
           </div>
-          <div class="msg-input__container">
-            <input
-              @keyup.enter="saveMessage"
-              v-model="message"
-              type="text"
-              class="msg-input__input"
-              placeholder="Type a message"
-            />
-            <button
-              @click="saveMessage"
-              class="button msg-input__btn--send"
-              type="button"
-            >
-              Send
-            </button>
-          </div>
+          <MessageInput />
         </div>
       </div>
     </div>
@@ -67,6 +34,8 @@
 import { mapActions } from "vuex";
 import firebase from "firebase";
 import dateFns from "date-fns";
+import Message from "@/components/Message.vue";
+import MessageInput from "@/components/MessageInput.vue";
 
 export default {
   name: "home",
@@ -77,29 +46,14 @@ export default {
       date: null
     };
   },
-  computed: {
-    getUserId() {
-      return this.$store.state.currentUserId;
-    },
-    initial() {
-      // Initials of the user name
-      const str = this.$store.state.currentUser;
-      var matches = str.match(/\b(\w)/g);
-      return matches.join("");
-    }
+  components: {
+    Message,
+    MessageInput
   },
   methods: {
     ...mapActions({
-      addMessage: "addMsg",
       setCurrentUser: "setCurrentUser"
     }),
-    saveMessage() {
-      // save to firestore
-      this.addMessage({
-        message: this.message
-      });
-      this.message = null;
-    },
     fetchMessages() {
       this.$store.state.db
         .collection("chat")
@@ -243,62 +197,19 @@ $msg-input-height: 40px;
     height: calc(100% - #{$msg-input-height} - #{$gutter} * 4);
     padding: $gutter * 2;
   }
-  .msg {
-    display: flex;
-    align-items: center;
-    &--self {
-      justify-content: flex-end;
-    }
-  }
-  .msg-avatar {
-    img {
-      width: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-  }
-  .msg-avatar--initial {
-    color: white;
-    font-weight: 400;
-    font-size: 22px;
-    background: $grey;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    line-height: 40px;
-    text-align: center;
-  }
-  .msg-details {
-    padding-left: 24px;
-  }
+
   .msg--incoming {
   }
   .msg--outgoing {
     margin-left: auto;
   }
-  .msg--message {
-  }
-  .time-date {
-  }
+
   .msg-input__container {
     display: flex;
     position: absolute;
     bottom: 0;
     height: $msg-input-height;
     width: 100%;
-  }
-  .msg-input__input {
-    font-size: 1.6rem;
-    padding: 11px;
-    border: none;
-    width: 100%;
-  }
-  .msg-input__btn--send {
-    font-size: 1.5rem;
-    padding: 11px 20px;
-    border: none;
-    background: $green;
-    color: white;
   }
 }
 </style>
