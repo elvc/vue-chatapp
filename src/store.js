@@ -2,35 +2,9 @@ import Vue from "vue";
 import Vuex from "vuex";
 import firebase from "firebase";
 import router from "./router";
-// Required for side-effects
-import "firebase/firestore";
+import { firestore } from "./firestore";
 
-const {
-  VUE_APP_API_KEY,
-  VUE_APP_AUTH_DOMAIN,
-  VUE_APP_DB_URL,
-  VUE_APP_PROJECT_ID,
-  VUE_APP_STORAGE_BUCKET,
-  VUE_APP_MESSAGE_SENDER_ID
-} = process.env;
-
-// Initialize Firebase
-var config = {
-  apiKey: VUE_APP_API_KEY,
-  authDomain: VUE_APP_AUTH_DOMAIN,
-  databaseURL: VUE_APP_DB_URL,
-  projectId: VUE_APP_PROJECT_ID,
-  storageBucket: VUE_APP_STORAGE_BUCKET,
-  messagingSenderId: VUE_APP_MESSAGE_SENDER_ID
-};
-
-firebase.initializeApp(config);
 Vue.use(Vuex);
-
-const firestore = firebase.firestore();
-
-const settings = { timestampsInSnapshots: true };
-firestore.settings(settings);
 
 const state = {
   db: firestore,
@@ -73,7 +47,6 @@ export default new Vuex.Store({
         });
     },
     SET_CURRENT_USER(state, user) {
-      console.log(user);
       state.currentUser = (user && user.displayName) || null;
       state.currentUserId = (user && user.uid) || null;
       state.photoUrl = (user && user.photoURL) || null;

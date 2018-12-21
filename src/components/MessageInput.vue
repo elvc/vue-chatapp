@@ -22,6 +22,11 @@ import { mapActions } from "vuex";
 
 export default {
   name: "MessageInput",
+  data() {
+    return {
+      message: null
+    };
+  },
   methods: {
     ...mapActions({
       addMessage: "addMsg"
