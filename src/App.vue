@@ -1,9 +1,11 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link>|
-      <button v-if="loggedout === null">Login</button>
-      <button v-else @click="logout">Logout</button>
+      <router-link to="/">Home</router-link>
+      <button class="btn btn--secondary" v-if="loggedout === null">
+        Login
+      </button>
+      <button class="btn btn--secondary" v-else @click="logout">Logout</button>
     </div>
     <router-view />
   </div>
@@ -45,7 +47,6 @@ html {
 body {
   box-sizing: border-box;
   font-size: 1.6rem;
-  background: $lighter-grey;
 }
 
 img {
@@ -70,11 +71,16 @@ ol {
 }
 #nav {
   padding: 30px;
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   a {
     font-weight: bold;
-    color: #2c3e50;
+    color: $green;
+    padding: 0 20px;
     &.router-link-exact-active {
-      color: #42b983;
+      color: $orange;
     }
   }
 }

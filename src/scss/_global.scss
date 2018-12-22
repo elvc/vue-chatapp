@@ -1,0 +1,50 @@
+button, 
+.btn {
+  padding: 10px 20px;
+  border: 1px solid $green;
+  background: $green;
+  color: white;
+  font-size: 1.5rem;
+  &:hover{
+    background: transparent;
+  color: $darkest-grey;
+  border: 1px solid $darkest-grey;
+  }
+}
+
+.btn--secondary {
+  background: transparent;
+  color: $darkest-grey;
+  border: 1px solid $darkest-grey;
+
+  &:hover{
+    background: $green;
+    color: white;
+    border: 1px solid $green;
+  }
+}
+
+.avatar {
+  img {
+    width: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+.avatar--initial {
+  color: white;
+  font-weight: 400;
+  font-size: 22px;
+  background: $grey;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  line-height: 40px;
+  text-align: center;
+}
+
+input, button {
+  &:focus {
+    outline: 0;
+  }
+}

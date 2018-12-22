@@ -1,22 +1,13 @@
 <template>
   <div class="chat">
     <div class="container">
-      <h1 class="app-heading">Messaging</h1>
       <div class="chat__main-container">
         <div class="chat__left-panel">
-          <ul class="chat__list">
-            <li class="chat__list-item">
-              <div class="chat_details">
-                <h5>User Group</h5>
-                <p>
-                  Test, which is a new approach to have all solutions astrology
-                  under one roof.
-                </p>
-              </div>
-            </li>
-          </ul>
+          <h2>List of Users</h2>
+          <UserList :users="users" />
         </div>
         <div class="chat__right-panel">
+          <div class="chat__group">Public Chat Room</div>
           <div class="msg-container">
             <div v-for="(message, index) in messages" :key="`message-${index}`">
               <Message :message="message" />
@@ -35,25 +26,29 @@ import firebase from "firebase";
 import dateFns from "date-fns";
 import Message from "@/components/Message.vue";
 import MessageInput from "@/components/MessageInput.vue";
+import UserList from "@/components/UserList.vue";
 
 export default {
   name: "home",
   data() {
     return {
       messages: [],
-      date: null
+      date: null,
+      users: null
     };
   },
   components: {
     Message,
-    MessageInput
+    MessageInput,
+    UserList
   },
   methods: {
     ...mapActions({
       setCurrentUser: "setCurrentUser"
     }),
     fetchMessages() {
-      this.$store.state.db
+      firebase
+        .firestore()
         .collection("chat")
         .orderBy("createdAt")
         .onSnapshot(querySnapshot => {
@@ -69,6 +64,19 @@ export default {
           this.messages = allMessages;
         });
     },
+    fetchUsers() {
+      firebase
+        .firestore()
+        .collection("status")
+        .orderBy("state", "desc")
+        .onSnapshot(querySnapshot => {
+          let allUsers = [];
+          querySnapshot.forEach(doc => {
+            allUsers.push(doc.data());
+          });
+          this.users = allUsers;
+        });
+    },
     regUserDisconnectHandler() {
       // Fetch the current user's ID from Firebase Authentication.
       const uid = firebase.auth().currentUser.uid;
@@ -78,18 +86,23 @@ export default {
       const userStatusDatabaseRef = firebase.database().ref("/status/" + uid);
       const userStatusFirestoreRef = firebase.firestore().doc("/status/" + uid);
       const user = firebase.auth().currentUser.displayName;
-
+      const userID = firebase.auth().currentUser.uid;
+      const userAvatar = firebase.auth().currentUser.photoURL;
       // Firestore uses a different server timestamp value, so we'll
       // create two more constants for Firestore state.
       const isOfflineForFirestore = {
         state: "offline",
         user,
+        user_id: userID,
+        user_photoUrl: userAvatar,
         last_changed: firebase.firestore.FieldValue.serverTimestamp()
       };
 
       const isOnlineForFirestore = {
         state: "online",
         user,
+        user_id: userID,
+        user_photoUrl: userAvatar,
         last_changed: firebase.firestore.FieldValue.serverTimestamp()
       };
       // We'll create two constants which we will write to
@@ -98,12 +111,16 @@ export default {
       const isOfflineForDatabase = {
         state: "offline",
         user,
+        user_id: userID,
+        user_photoUrl: userAvatar,
         last_changed: firebase.database.ServerValue.TIMESTAMP
       };
 
       const isOnlineForDatabase = {
         state: "online",
         user,
+        user_id: userID,
+        user_photoUrl: userAvatar,
         last_changed: firebase.database.ServerValue.TIMESTAMP
       };
 
@@ -162,7 +179,14 @@ export default {
     this.regAuthStatusChangeHandler();
     this.regUserDisconnectHandler();
     this.regUserStatusChangeHandler();
+    this.fetchUsers();
     this.fetchMessages();
+  },
+  updated() {
+    // Select the node that will be observed for mutations
+    var targetNode = document.querySelector(".msg-container");
+
+    targetNode.scrollTop = targetNode.scrollHeight;
   },
   // check authentication before hitting any routes
   beforeRouteEnter(to, from, next) {
@@ -178,32 +202,28 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$msg-input-height: 40px;
-
-.app-heading {
-  text-align: center;
-}
 .chat__main-container {
   display: flex;
-  height: 65vh;
+  height: 700px;
+  box-shadow: 0px 1px 22px 1px rgba(51, 51, 51, 1);
 }
 .chat__left-panel {
-  width: 35%;
-  background: $grey;
+  width: 30%;
+  background: $darkest-grey;
   color: white;
   overflow-y: auto;
+  padding: $gutter * 2;
 }
 .chat__right-panel {
-  width: 65%;
-  background: $lightest-grey;
+  width: 70%;
+  background: $off-white;
   position: relative;
 
   .msg-container {
     overflow-y: auto;
-    height: calc(100% - #{$msg-input-height} - #{$gutter} * 4);
-    padding: $gutter * 2;
+    height: calc(100% - 140px);
+    padding: 0 $gutter * 2 $gutter;
   }
-
   .msg--incoming {
   }
   .msg--outgoing {
@@ -212,10 +232,16 @@ $msg-input-height: 40px;
 
   .msg-input__container {
     display: flex;
-    position: absolute;
-    bottom: 0;
-    height: $msg-input-height;
-    width: 100%;
+    padding: 10px $gutter * 2;
   }
+}
+.chat__group {
+  padding: $gutter $gutter * 2;
+  background: $lightest-grey;
+  font-weight: bold;
+  font-size: 2rem;
+}
+.user-list {
+  display: flex;
 }
 </style>

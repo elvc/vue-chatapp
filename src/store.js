@@ -8,9 +8,9 @@ Vue.use(Vuex);
 
 const state = {
   db: firestore,
+  status: null,
   currentUser: null,
-  currentUserId: null,
-  photoUrl: null
+  currentUserId: null
 };
 
 export default new Vuex.Store({
