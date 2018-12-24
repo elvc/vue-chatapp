@@ -3,13 +3,27 @@
     <div class="container">
       <div class="chat__main-container">
         <div class="chat__left-panel">
-          <h2>List of Users</h2>
-          <UserList :users="users" />
+          <div class="chat__user-info">{{ currentUser }}</div>
+          <div class="chat__users">
+            <div class="chat__users--online">
+              <h2 class="chat__users-status">Online</h2>
+              <UserList :users="onlineUsers" />
+            </div>
+            <div class="chat__users--offline">
+              <h2 class="chat__users-status">Offline</h2>
+              <UserList :users="offlineUsers" />
+            </div>
+          </div>
         </div>
         <div class="chat__right-panel">
           <div class="chat__group">Public Chat Room</div>
           <div class="msg-container">
-            <div v-for="(message, index) in messages" :key="`message-${index}`">
+            <div
+              class="msg-item-container"
+              v-for="(message, index) in messages"
+              :key="`message-${index}`"
+            >
+              <div v-if="shouldRenderDate(message)">{{ getDate(message) }}</div>
               <Message :message="message" />
             </div>
           </div>
@@ -23,18 +37,18 @@
 <script>
 import { mapActions } from "vuex";
 import firebase from "firebase";
-import dateFns from "date-fns";
 import Message from "@/components/Message.vue";
 import MessageInput from "@/components/MessageInput.vue";
 import UserList from "@/components/UserList.vue";
+import moment from "moment";
 
 export default {
   name: "home",
   data() {
     return {
+      msgDate: null,
       messages: [],
-      date: null,
-      users: null
+      allUsers: null
     };
   },
   components: {
@@ -42,10 +56,42 @@ export default {
     MessageInput,
     UserList
   },
+  computed: {
+    currentUser() {
+      return this.$store.state.currentUser;
+    },
+    offlineUsers() {
+      return this.allUsers && this.allUsers.filter(u => u.state === "offline");
+    },
+    onlineUsers() {
+      return this.allUsers && this.allUsers.filter(u => u.state === "online");
+    }
+  },
   methods: {
     ...mapActions({
       setCurrentUser: "setCurrentUser"
     }),
+    getDate(message) {
+      return moment(message.createdAt.toDate()).calendar(null, {
+        sameDay: "[Today]",
+        lastDay: "[Yesterday]",
+        sameElse: "MMM DD, YYYY"
+      });
+    },
+    shouldRenderDate(message) {
+      const date = this.getDate(message);
+      if (!this.msgDate) {
+        this.msgDate = date;
+        return true;
+      } else {
+        if (this.msgDate === date) {
+          return false;
+        } else {
+          this.msgDate = date;
+          return true;
+        }
+      }
+    },
     fetchMessages() {
       firebase
         .firestore()
@@ -54,12 +100,7 @@ export default {
         .onSnapshot(querySnapshot => {
           let allMessages = [];
           querySnapshot.forEach(doc => {
-            const data = doc.data();
-            data.createdAt = dateFns.format(
-              doc.data().createdAt.toDate(),
-              "MM/DD, HH:mm"
-            );
-            allMessages.push(data);
+            allMessages.push(doc.data());
           });
           this.messages = allMessages;
         });
@@ -74,7 +115,7 @@ export default {
           querySnapshot.forEach(doc => {
             allUsers.push(doc.data());
           });
-          this.users = allUsers;
+          this.allUsers = allUsers;
         });
     },
     regUserDisconnectHandler() {
@@ -183,9 +224,8 @@ export default {
     this.fetchMessages();
   },
   updated() {
-    // Select the node that will be observed for mutations
+    // Scroll to bottom of message list whenever there's an update/render
     var targetNode = document.querySelector(".msg-container");
-
     targetNode.scrollTop = targetNode.scrollHeight;
   },
   // check authentication before hitting any routes
@@ -209,10 +249,8 @@ export default {
 }
 .chat__left-panel {
   width: 30%;
-  background: $darkest-grey;
   color: white;
   overflow-y: auto;
-  padding: $gutter * 2;
 }
 .chat__right-panel {
   width: 70%;
@@ -223,6 +261,9 @@ export default {
     overflow-y: auto;
     height: calc(100% - 140px);
     padding: 0 $gutter * 2 $gutter;
+  }
+  .msg-item-container {
+    margin: 20px 0;
   }
   .msg--incoming {
   }
@@ -238,10 +279,20 @@ export default {
 .chat__group {
   padding: $gutter $gutter * 2;
   background: $lightest-grey;
-  font-weight: bold;
   font-size: 2rem;
 }
-.user-list {
-  display: flex;
+.chat__users-status {
+  font-weight: normal;
+  font-size: 1.8rem;
+}
+.chat__user-info {
+  background: black;
+  padding: $gutter $gutter * 2;
+  font-size: 2rem;
+}
+.chat__users {
+  background: $darkest-grey;
+  padding: $gutter $gutter * 2;
+  height: 100%;
 }
 </style>
