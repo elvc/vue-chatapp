@@ -23,7 +23,7 @@
               v-for="(message, index) in messages"
               :key="`message-${index}`"
             >
-              <div v-if="shouldRenderDate(message)">{{ getDate(message) }}</div>
+              <div v-if="message.shouldRenderDate">{{ getDate(message) }}</div>
               <Message :message="message" />
             </div>
           </div>
@@ -78,20 +78,6 @@ export default {
         sameElse: "MMM DD, YYYY"
       });
     },
-    shouldRenderDate(message) {
-      const date = this.getDate(message);
-      if (!this.msgDate) {
-        this.msgDate = date;
-        return true;
-      } else {
-        if (this.msgDate === date) {
-          return false;
-        } else {
-          this.msgDate = date;
-          return true;
-        }
-      }
-    },
     fetchMessages() {
       firebase
         .firestore()
@@ -99,9 +85,39 @@ export default {
         .orderBy("createdAt")
         .onSnapshot(querySnapshot => {
           let allMessages = [];
+          let prevDate = null;
+          let currDate;
           querySnapshot.forEach(doc => {
             allMessages.push(doc.data());
           });
+
+          /**
+           * Set up the logic to display messages of the same day in groups.
+           * We cannot dynamically do this logic in render as it would potentially
+           * cause infinite loop and it's an anti-pattern, although in our implementation,
+           * it won't.
+           * That's why we do the logic here and set an indicator in each message for render
+           * logic.
+           */
+          allMessages.forEach(m => {
+            currDate = moment(m.createdAt.toDate()).calendar(null, {
+              sameDay: "[Today]",
+              lastDay: "[Yesterday]",
+              sameElse: "MMM DD, YYYY"
+            });
+            if (!prevDate) {
+              prevDate = currDate;
+              m.shouldRenderDate = true;
+            } else {
+              if (prevDate === currDate) {
+                m.shouldRenderDate = false;
+              } else {
+                prevDate = currDate;
+                m.shouldRenderDate = true;
+              }
+            }
+          });
+
           this.messages = allMessages;
         });
     },
