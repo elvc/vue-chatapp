@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div id="nav">
+    <div id="nav" class="container">
       <router-link to="/">Home</router-link>
       <button class="btn btn--secondary" v-if="loggedout === null">
         Login

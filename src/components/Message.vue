@@ -69,8 +69,8 @@ export default {
       &:first-child {
         padding: 4px $gutter;
         font-size: 1.3rem;
-        border-top-left-radius: 16px;
-        border-top-right-radius: 16px;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
         font-weight: 400;
       }
       &:last-child {
@@ -109,18 +109,18 @@ export default {
         margin-left: $gutter;
         &:first-child {
           background: $lighter-grey;
-          border-top-left-radius: 16px;
-          border-top-right-radius: 16px;
+          border-top-left-radius: 12px;
+          border-top-right-radius: 12px;
         }
         &:last-child {
-          border-bottom-right-radius: 16px;
+          border-bottom-right-radius: 12px;
           background: $lightest-grey;
         }
       }
       &:before {
         left: 14px;
         border-left: 20px solid $lightest-grey;
-        border-bottom-right-radius: 16px 14px;
+        border-bottom-right-radius: 12px 14px;
       }
       &:after {
         left: 5px;
@@ -150,13 +150,13 @@ export default {
         }
         &:last-child {
           background: $blue;
-          border-bottom-left-radius: 16px;
+          border-bottom-left-radius: 12px;
         }
       }
       &:before {
         right: 14px;
         border-right: 20px solid $blue;
-        border-bottom-left-radius: 16px;
+        border-bottom-left-radius: 12px;
       }
       &:after {
         right: 5px;
