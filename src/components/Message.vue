@@ -9,8 +9,11 @@
       <div v-else class="avatar--initial">{{ initial }}</div>
     </div>
     <div class="msg-details">
-      <p class="msg--message">{{ message.message }}</p>
-      <div class="time_date">{{ getMsgTime }} | {{ message.author }}</div>
+      <p class="msg--message">
+        <span>{{ message.author }}</span
+        ><span>{{ message.message }}</span>
+      </p>
+      <div class="time-date">{{ getMsgTime }}</div>
     </div>
   </div>
 </template>
@@ -46,8 +49,83 @@ export default {
   align-items: center;
   width: 50%;
   .avatar {
-    img {
+    flex: 1;
+  }
+  .time-date {
+    font-size: 1.4rem;
+  }
+  .msg-details {
+    flex: 8;
+    display: flex;
+    flex-direction: column;
+  }
+  .msg--message {
+    margin: 0;
+    position: relative;
+    word-wrap: break-word;
+    display: inline-blsock;
+    span {
       display: block;
+      &:first-child {
+        padding: 4px $gutter;
+        font-size: 1.3rem;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        font-weight: 400;
+      }
+      &:last-child {
+        padding: 8px $gutter;
+        font-size: 1.7rem;
+        font-weight: normal;
+      }
+    }
+    &:before {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      bottom: 0px;
+      height: 20px;
+    }
+    &:after {
+      content: "";
+      position: absolute;
+      z-index: 3;
+      bottom: 0px;
+      width: 15px;
+      height: 20px;
+      background: $off-white;
+    }
+  }
+
+  &--others {
+    .msg-details {
+      align-items: flex-start;
+    }
+    .time-date {
+      margin-left: $gutter;
+    }
+    .msg--message {
+      span {
+        margin-left: $gutter;
+        &:first-child {
+          background: $lighter-grey;
+          border-top-left-radius: 16px;
+          border-top-right-radius: 16px;
+        }
+        &:last-child {
+          border-bottom-right-radius: 16px;
+          background: $lightest-grey;
+        }
+      }
+      &:before {
+        left: 14px;
+        border-left: 20px solid $lightest-grey;
+        border-bottom-right-radius: 16px 14px;
+      }
+      &:after {
+        left: 5px;
+        border-bottom-right-radius: 10px;
+      }
     }
   }
   &--self {
@@ -57,71 +135,34 @@ export default {
     .avatar {
       order: 2;
     }
-  }
-}
-
-.msg--message {
-  position: relative;
-  padding: $gutter/2 $gutter;
-  border-radius: 20px;
-  word-wrap: break-word;
-
-  .msg--others & {
-    margin-left: $gutter;
-    background: $lighter-grey;
-    &:before {
-      content: "";
-      position: absolute;
-      z-index: 2;
-      bottom: 0px;
-      left: -7px;
-      height: 20px;
-      border-left: 20px solid $lighter-grey;
-      border-bottom-right-radius: 16px 14px;
+    .time-date {
+      margin-right: $gutter;
     }
-    &:after {
-      content: "";
-      position: absolute;
-      z-index: 3;
-      bottom: 0px;
-      left: -15px;
-      width: 15px;
-      height: 20px;
-      background: $off-white;
-      border-bottom-right-radius: 10px;
+    .msg-details {
+      align-items: flex-end;
+    }
+    .msg--message {
+      span {
+        margin-right: $gutter;
+        color: white;
+        &:first-child {
+          background: darken($blue, 20%);
+        }
+        &:last-child {
+          background: $blue;
+          border-bottom-left-radius: 16px;
+        }
+      }
+      &:before {
+        right: 14px;
+        border-right: 20px solid $blue;
+        border-bottom-left-radius: 16px;
+      }
+      &:after {
+        right: 5px;
+        border-bottom-left-radius: 10px;
+      }
     }
   }
-  .msg--self & {
-    margin-right: $gutter;
-    background: $blue;
-    color: white;
-    &:before {
-      content: "";
-      position: absolute;
-      z-index: 1;
-      bottom: 0px;
-      right: -7px;
-      height: 20px;
-      border-right: 20px solid $blue;
-      border-bottom-left-radius: 16px 14px;
-    }
-    &:after {
-      content: "";
-      position: absolute;
-      z-index: 2;
-      bottom: 0px;
-      right: -15px;
-      width: 15px;
-      height: 20px;
-      background: $off-white;
-      border-bottom-left-radius: 10px;
-    }
-  }
-}
-
-.msg--message {
-  margin: 0;
-}
-.time-date {
 }
 </style>

@@ -23,7 +23,9 @@
               v-for="(message, index) in messages"
               :key="`message-${index}`"
             >
-              <div v-if="message.shouldRenderDate">{{ getDate(message) }}</div>
+              <div class="msg-date" v-if="message.shouldRenderDate">
+                <span> {{ getDate(message) }} </span>
+              </div>
               <Message :message="message" />
             </div>
           </div>
@@ -281,21 +283,30 @@ export default {
   .msg-item-container {
     margin: 20px 0;
   }
-  .msg--incoming {
-  }
-  .msg--outgoing {
-    margin-left: auto;
-  }
 
   .msg-input__container {
     display: flex;
     padding: 10px $gutter * 2;
+  }
+  .msg-date {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    span {
+      display: inline-block;
+      background: $lighter-grey;
+      font-size: 1.4rem;
+      font-weight: 500;
+      padding: 2px 16px;
+      border-radius: 25px;
+    }
   }
 }
 .chat__group {
   padding: $gutter $gutter * 2;
   background: $lightest-grey;
   font-size: 2rem;
+  font-weight: 400;
 }
 .chat__users-status {
   font-weight: normal;
