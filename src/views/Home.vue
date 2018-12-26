@@ -216,10 +216,10 @@ export default {
         .onSnapshot(function(snapshot) {
           snapshot.docChanges().forEach(function(change) {
             if (change.type === "added") {
-              console.log(change.doc.id + " is online");
+              // when user is online
             }
             if (change.type === "removed") {
-              console.log(change.doc.id + " is offline");
+              // when user is offline
             }
           });
         });
